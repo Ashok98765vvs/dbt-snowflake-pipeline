@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: raw
+    database: RAW_DB
+    schema: PUBLIC
+    tables:
+      - name: RAW_STOCK_DATA
+        description: Raw stock data ingested from Yahoo Finance API
+        columns:
+          - name: DATE
+            description: Trading date
+            tests:
+              - not_null
+          - name: TICKER
+            description: Stock ticker symbol
+            tests:
+              - not_null
+          - name: CLOSE
+            description: Closing price
+            tests:
+              - not_null
+
+models:
+  - name: stg_raw_data
+    description: Staged and cleaned stock data
+    columns:
+      - name: trade_date
+        description: Trading date
+        tests:
+          - not_null
+      - name: ticker_symbol
+        description: Stock ticker symbol
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'META']
+      - name: close_price
+        description: Closing price (rounded to 4 decimal places)
+        tests:
+          - not_null
+      - name: volume
+        description: Trading volume
+        tests:
+          - not_null
+
+  - name: fct_summary
+    description: Incremental daily stock summary with 7/30-day moving averages
+    columns:
+      - name: trade_date
+        tests:
+          - not_null
+      - name: ticker_symbol
+        tests:
+          - not_null
+      - name: pct_change
+        description: Daily percentage change in closing price
+        tests:
+          - not_null
+      - name: ma_7_day
+        description: 7-day moving average of closing price
+      - name: ma_30_day
+        description: 30-day moving average of closing price
